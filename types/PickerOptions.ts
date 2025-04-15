@@ -1,0 +1,1 @@
+export type PickerOptions = string[];
