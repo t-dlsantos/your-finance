@@ -27,7 +27,7 @@ export function Select({ options, selectedItem, setSelectedItem, background }: P
         setOpen={setOpen}
         setValue={setSelectedItem}
         style={{
-          backgroundColor: background ? 'rgb(24 24 27)' : 'transparent',
+          backgroundColor: background ? '#27272a' : 'transparent',
           borderColor: 'transparent',
         }}
         textStyle={{

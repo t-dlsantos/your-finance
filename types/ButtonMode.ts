@@ -1,0 +1,1 @@
+export type ButtonMode = 'CONFIRM' | 'CANCEL' | 'DANGER' | 'PRIMARY';
