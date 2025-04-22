@@ -1,49 +1,27 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 
 import TransactionFilter from '~/components/TransactionFilter';
 
-//Dados mocados
-const transactions = [
-  {
-    id: 1,
-    title: 'Salário',
-    amount: 3000,
-    type: 'Receita',
-    category: 'Salário',
-    date: '2025-04-10',
-  },
-  {
-    id: 2,
-    title: 'Almoço',
-    amount: 45,
-    type: 'Gasto',
-    category: 'Comida',
-    date: '2025-04-13',
-  },
-  {
-    id: 3,
-    title: 'Uber',
-    amount: 22,
-    type: 'Gasto',
-    category: 'Transporte',
-    date: '2025-04-13',
-  },
-  {
-    id: 4,
-    title: 'Freela',
-    amount: 800,
-    type: 'Receita',
-    category: 'Salário',
-    date: '2025-04-12',
-  },
-];
+import { Transaction } from '~/types/Transaction';
 
-const History = () => {
+import api from '~/services/api';
+
+export default function History() {
   const [selectedPeriod, setSelectedPeriod] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      const transactions = await api.getTransactions();
+      setTransactions(transactions);
+    };
+  
+    fetchTransactions();
+  }, []);
 
   const filteredTransactions = useMemo(() => {
     const now = new Date();
@@ -56,11 +34,11 @@ const History = () => {
 
       if (selectedPeriod === '7days') {
         const diff = Math.floor((now.getTime() - txDate.getTime()) / (1000 * 60 * 60 * 24));
-        if (diff > 7) return false;
+        if (diff > 7 || diff < 0) return false;
       }
 
-      if (selectedType !== 'all' && tx.type !== selectedType) return false;
-      if (selectedCategory !== 'all' && tx.category !== selectedCategory) return false;
+      if (selectedType !== 'all' && tx.transaction_type !== selectedType) return false;
+      if (selectedCategory !== 'all' && tx.category.name !== selectedCategory) return false;
 
       return true;
     });
@@ -79,9 +57,10 @@ const History = () => {
 
   const formatDate = (isoDate: string) => {
     const date = new Date(isoDate);
-    const day = date.getDate();
-    const month = date.toLocaleString('default', { month: 'short' }); // ex: Jan
-    return `${day} ${month}`;
+    const day = date.getUTCDate();
+    const month = date.toLocaleString('default', { month: 'short' });
+    const year = date.toLocaleString('default', { year: '2-digit' });
+    return `${day} ${month} ${year}`;
   };
 
   return (
@@ -111,7 +90,9 @@ const History = () => {
           <Text style={styles.empty}>Nenhuma transação encontrada.</Text>
         )}
 
-        {Object.keys(grouped).map((date) => (
+      {Object.keys(grouped)
+        .sort((a, b) => new Date(b).getTime() - new Date(a).getTime()) // <-- ordena decrescente
+        .map((date) => (
           <View key={date} style={styles.section}>
             <Text style={styles.date}>{formatDate(date)}</Text>
             {grouped[date].map((tx) => (
@@ -121,15 +102,15 @@ const History = () => {
                   style={[
                     styles.amount,
                     {
-                      color: tx.type === 'Receita' ? '#2ecc71' : '#e74c3c',
+                      color: tx.transaction_type === 'income' ? '#2ecc71' : '#e74c3c',
                     },
                   ]}>
-                  {tx.type === 'Gasto' ? '-' : '+'} R$ {tx.amount}
+                  {tx.transaction_type === 'expense' ? '-' : '+'} R$ {tx.amount}
                 </Text>
               </View>
             ))}
           </View>
-        ))}
+      ))}
       </ScrollView>
     </View>
   );
@@ -192,5 +173,3 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
-export default History;

@@ -1,26 +1,21 @@
-import { StatusBar, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import '~/services/axiosSetup';
 import '../global.css';
 
 import { Stack } from 'expo-router';
-
-export const unstable_settings = {
-  initialRouteName: '(tabs)',
-};
+import { AuthProvider, useAuth } from '~/context/AuthContext';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function RootLayout() {
   return (
-    <>
-      <View className="flex-1 bg-black">
-        <StatusBar 
-          barStyle='light-content'
-          translucent
-          backgroundColor='transparent'
-        /> 
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal', headerShown: false, animation: 'none' }} />
-        </Stack>
-      </View>
-    </>
+    <AuthProvider>
+      <GestureHandlerRootView>
+        <SafeAreaProvider>
+            <StatusBar style="auto" />
+            <Stack screenOptions={{ headerShown: false }} />
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </AuthProvider>
   );
 }

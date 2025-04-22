@@ -2,7 +2,7 @@ import { Pressable } from 'react-native';
 
 import { router, Tabs } from 'expo-router';
 
-import { TabBarIcon } from '../../components/TabBarIcon';
+import { TabBarIcon } from '../../../components/TabBarIcon';
 import { AddButtom } from '~/components/AddButton';
 
 export default function TabLayout() {

@@ -3,11 +3,11 @@ import { ButtonMode } from "~/types/ButtonMode";
 
 interface Props extends TouchableOpacityProps {
     title: string;
-    type: ButtonMode;
+    type?: ButtonMode;
     onPress: () => void;
 }
 
-export function Button({ title, type, onPress }: Props) {
+export function CustomButton({ title, type, onPress }: Props) {
     const getBackgroundColor = () => {
         switch (type) {
             case 'CONFIRM':
@@ -17,14 +17,14 @@ export function Button({ title, type, onPress }: Props) {
             case 'DANGER':
                 return 'bg-red-600';
             case 'PRIMARY':
-                return 'bg-blue-600';
+                return 'bg-green-600';
             default:
-                return 'bg-zinc-700';
+                return 'transparent';
         }
     };
 
     return (
-        <TouchableOpacity className={`w-full h-14 ${getBackgroundColor()} justify-center items-center rounded-lg`} onPress={onPress}>
+        <TouchableOpacity className={`h-14 ${getBackgroundColor()} justify-center items-center rounded-lg`} onPress={onPress}>
             <Text className="text-white text-base font-bold">
                 { title }
             </Text>
