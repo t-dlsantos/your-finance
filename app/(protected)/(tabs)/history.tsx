@@ -1,33 +1,26 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 
 import TransactionFilter from '~/components/TransactionFilter';
 
 import { Transaction } from '~/types/Transaction';
 
-import api from '~/services/api';
+import { useTransactions } from '~/context/TransactionsContext';
+import { Container } from '~/components/Container';
+import { Logo } from '~/components/Logo';
 
 export default function History() {
   const [selectedPeriod, setSelectedPeriod] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      const transactions = await api.getTransactions();
-      setTransactions(transactions);
-    };
-  
-    fetchTransactions();
-  }, []);
+  const { transactions } = useTransactions();
 
   const filteredTransactions = useMemo(() => {
     const now = new Date();
     return transactions.filter((tx) => {
-      const txDate = new Date(tx.date);
-
+      const txDate = new Date(`${tx.date}T00:00:00`);
+      
       if (selectedPeriod === 'today') {
         if (txDate.toDateString() !== now.toDateString()) return false;
       }
@@ -42,14 +35,12 @@ export default function History() {
 
       return true;
     });
-  }, [selectedPeriod, selectedType, selectedCategory]);
+  }, [transactions, selectedPeriod, selectedType, selectedCategory]);
 
   const grouped = useMemo(() => {
-    const groups: Record<string, typeof transactions> = {};
+    const groups: Record<string, Transaction[]> = {};
     filteredTransactions.forEach((tx) => {
-      if (!groups[tx.date]) {
-        groups[tx.date] = [];
-      }
+      if (!groups[tx.date]) groups[tx.date] = [];
       groups[tx.date].push(tx);
     });
     return groups;
@@ -64,11 +55,9 @@ export default function History() {
   };
 
   return (
-    <View style={styles.container}>
+    <Container>
       <View style={styles.headerContainer}>
-        <Text style={styles.header}>
-          Your <Text style={styles.green}>Finance</Text>
-        </Text>
+        <Logo />
         <TouchableOpacity onPress={() => setShowFilters(!showFilters)}>
           <Text style={styles.menuIcon}>...</Text>
         </TouchableOpacity>
@@ -112,7 +101,7 @@ export default function History() {
           </View>
       ))}
       </ScrollView>
-    </View>
+    </Container>
   );
 };
 

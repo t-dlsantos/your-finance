@@ -2,10 +2,12 @@ import { View, ActivityIndicator } from 'react-native';
 
 import { Redirect, Stack } from 'expo-router';
 import { useAuth } from '~/context/AuthContext';
+import { TransactionsProvider } from '~/context/TransactionsContext';
+import { CategoriesProvider } from '~/context/CategoriesContext';
 
 export const unstable_settings = {
-  initialRouteName: "(tabs)",
-}
+  initialRouteName: '(tabs)',
+};
 
 export default function AppLayout() {
   const { authState } = useAuth();
@@ -19,15 +21,22 @@ export default function AppLayout() {
   }
 
   if (!authState?.authenticated) {
-    console.log(`User is not authenticated: ${authState?.authenticated}`)
-    console.log('Redirecting to login')
-    return <Redirect href="/login" />
+    console.log(`User is not authenticated: ${authState?.authenticated}`);
+    console.log('Redirecting to login');
+    return <Redirect href="/login" />;
   }
 
   return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="modal" options={{ presentation: 'modal', headerShown: false, animation: 'none' }} />
-    </Stack>
+    <TransactionsProvider>
+      <CategoriesProvider>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="modal"
+            options={{ presentation: 'modal', headerShown: false, animation: 'none' }}
+          />
+        </Stack>
+      </CategoriesProvider>
+    </TransactionsProvider>
   );
 }

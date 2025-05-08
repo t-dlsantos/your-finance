@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import { Category } from '~/types/Transaction';
+import { getCategories } from '~/services/categories';
 
 interface Props {
   period: string;
@@ -19,6 +21,21 @@ const TransactionFilter: React.FC<Props> = ({
   category,
   setCategory,
 }) => {
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  async function loadCategories() {
+    try {
+      const data = await getCategories();
+      setCategories(data);
+    } catch (error) {
+      console.error('Erro ao carregar categorias:', error);
+    }
+  }
+
   return (
     <View style={styles.filters}>
       <Picker
@@ -32,19 +49,23 @@ const TransactionFilter: React.FC<Props> = ({
 
       <Picker selectedValue={type} style={styles.picker} onValueChange={(value) => setType(value)}>
         <Picker.Item label="Tipo" value="all" />
-        <Picker.Item label="Receita" value="Receita" />
-        <Picker.Item label="Gasto" value="Gasto" />
+        <Picker.Item label="Receita" value="income" />
+        <Picker.Item label="Gasto" value="expense" />
       </Picker>
 
       <Picker
         selectedValue={category}
         style={styles.picker}
         onValueChange={(value) => setCategory(value)}>
-        <Picker.Item label="Categoria" value="all" />
-        <Picker.Item label="Comida" value="Comida" />
-        <Picker.Item label="Salário" value="Salário" />
-        <Picker.Item label="Transporte" value="Transporte" />
-        {/* Adicione mais categorias conforme necessário */}
+        {/* Adicionando a opção "Todas" */}
+        <Picker.Item label="Todas as categorias" value="all" />
+        {categories.map((cat) => (
+          <Picker.Item
+            key={cat.id}
+            label={cat.name}
+            value={cat.id.toString()} // Certifique-se de passar o id como valor
+          />
+        ))}
       </Picker>
     </View>
   );

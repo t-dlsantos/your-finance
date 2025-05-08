@@ -1,8 +1,6 @@
 import { useContext, createContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
-import { router } from 'expo-router';
-import { createIconSetFromFontello } from '@expo/vector-icons';
 
 interface AuthProps {
     authState?: { 
@@ -25,7 +23,7 @@ export function useAuth() {
     return useContext(AuthContext);
 }
 
-export function AuthProvider({children}: any) {
+export function AuthProvider({ children }: any) {
     const [authState, setAuthState] = useState<{
         token: string | null;
         authenticated: boolean | null;
@@ -74,7 +72,7 @@ export function AuthProvider({children}: any) {
     async function login(username: string, password: string) {
         try {
             const result = await axios.post(`${API_URL}/token/`, { username, password });
-            
+            console.log(result.data.id)
             setAuthState({
                 token: result.data.access,
                 authenticated: true,
@@ -103,6 +101,7 @@ export function AuthProvider({children}: any) {
             isLoading: false
         });
     }
+    
     const value = {
         onRegister: register,
         onLogin: login,

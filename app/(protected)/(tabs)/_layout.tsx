@@ -4,6 +4,8 @@ import { router, Tabs } from 'expo-router';
 
 import { TabBarIcon } from '../../../components/TabBarIcon';
 import { AddButtom } from '~/components/AddButton';
+import { TransactionsProvider } from '~/context/TransactionsContext';
+import { CategoriesProvider } from '~/context/CategoriesContext';
 
 export default function TabLayout() {
   return (

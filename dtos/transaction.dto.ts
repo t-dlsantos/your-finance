@@ -1,11 +1,6 @@
-export type TransactionType = 'income' | 'expense';
-export type TransactionTypeLabel = 'Receita' | 'Despesa';
+import { Category } from "./category.dto";
 
-export interface Category {
-  id: number;
-  name: string;
-  user: number;
-}
+export type TransactionType = 'income' | 'expense';
 
 export interface Transaction {
   id: number;
@@ -24,6 +19,6 @@ export interface CreateTransactionDTO {
   title: string;
   amount: number;
   transaction_type: TransactionType;
-  category_id: number;
   date: string;
-}
+  category_id: number;
+} 

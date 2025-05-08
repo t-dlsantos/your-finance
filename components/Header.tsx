@@ -16,11 +16,7 @@ export function Header({ type, pickerOptions, selectedItem, setSelectedItem }: P
   return (
     <View className="w-full flex-row items-center">
       <Logo type={type} />
-      <Select 
-        options={pickerOptions}
-        selectedItem={selectedItem}
-        setSelectedItem={setSelectedItem}
-      />
+
     </View>
   );
 }

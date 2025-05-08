@@ -1,25 +1,24 @@
 import { useState } from 'react';
 import { View } from 'react-native';
-import DropDownPicker from 'react-native-dropdown-picker';
-import { PickerOptions } from '~/types/PickerOptions';
+import DropDownPicker, { ValueType } from 'react-native-dropdown-picker';
 
 interface Props {
-  options: PickerOptions;
+  options: any[];
   selectedItem: any;
-  setSelectedItem: any;
-  background?: true | false;
+  setSelectedItem: React.Dispatch<React.SetStateAction<any>>;
+  background?: boolean;
 }
 
 export function Select({ options, selectedItem, setSelectedItem, background }: Props) {
   const [open, setOpen] = useState(false);
 
-  const items = options.map(option => ({
-    label: option,
-    value: option
+  const items = options.map((option) => ({
+  label: option.name,
+    value: option.id,
   }));
 
   return (
-    <View className={`${background ? `bg-zinc-900 w-full rounded-lg`: `w-40`}`}>
+    <View className={`${background ? `w-full rounded-lg bg-zinc-900` : `w-40`}`}>
       <DropDownPicker
         open={open}
         value={selectedItem}
@@ -27,7 +26,7 @@ export function Select({ options, selectedItem, setSelectedItem, background }: P
         setOpen={setOpen}
         setValue={setSelectedItem}
         style={{
-          backgroundColor: background ? '#27272a' : 'transparent',
+          backgroundColor: background ? '#18181b' : 'transparent',
           borderColor: 'transparent',
         }}
         textStyle={{
@@ -40,6 +39,20 @@ export function Select({ options, selectedItem, setSelectedItem, background }: P
         placeholder="Selecione"
         placeholderStyle={{
           color: 'white',
+        }}
+        listItemLabelStyle={{
+          color: 'white',
+        }}
+        selectedItemLabelStyle={{
+          color: 'white',
+          fontWeight: 'bold',
+        }}
+        selectedItemContainerStyle={{
+          backgroundColor: 'rgb(39 39 42)',
+        }}
+        schema={{
+          label: 'label',
+          value: 'value',
         }}
       />
     </View>

@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Switch, Button } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CustomButton } from '~/components/CustomButton';
@@ -11,32 +11,56 @@ import { Select } from '~/components/Select';
 import CurrencyInput from 'react-native-currency-input';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 
-import api from '~/services/api';
+import { createTransaction } from '~/services/transactions';
+import { getCategories } from '~/services/categories';
 
-import { Transaction, TransactionType, TransactionTypeLabel } from '~/types/Transaction';
+import { TransactionTypeLabel } from '~/types/Transaction';
+
+import { getTransactions } from '~/services/transactions';
+
 import { TRANSACTION_TYPE_MAP } from '~/utils/transactions';
+import { useTransactions } from '~/context/TransactionsContext';
+
+import { CreateTransactionDTO } from '~/dtos/transaction.dto';
+import { useCategories } from '~/context/CategoriesContext';
+import { Logo } from '~/components/Logo';
+import { Category } from '~/dtos/category.dto';
 
 export default function Modal() {
   const [amount, setAmount] = useState(0);
-  const [transactionTypeLabel, setTransactionTypeLabel] = useState<TransactionTypeLabel>('Receita');
-  const [category, setCategory] = useState(null);
+  const [transactionTypeLabel, setTransactionTypeLabel] = useState<any>(1);
+  const [category, setCategory] = useState<any>(null);
   const [title, setTitle] = useState('');
-  const [date, setDate] = useState(new Date(1598051730000));
+
+  const [date, setDate] = useState(new Date());
   const [mode, setMode] = useState('date');
   const [show, setShow] = useState(false);
 
+  const { setTransactions } = useTransactions();
+
+  const { categories } = useCategories();
+
   async function handleSaveTransaction() {
+    if (!category) {
+      alert('Por favor, selecione uma categoria');
+      return;
+    }
+    console.log(transactionTypeLabel)
     try {
-      await api.createTransaction({
+      const newTransaction: CreateTransactionDTO = {
         amount,
         title,
-        transaction_type: TRANSACTION_TYPE_MAP[transactionTypeLabel],
+        transaction_type: transactionTypeLabel === 1 ? 'income' : 'expense',
         date: date.toLocaleDateString('en-CA'),
-        category_id: 1,
-      });
-      router.push('/(protected)/(tabs)/history');
+        category_id: category,
+      };
+      console.log(newTransaction)
+      const createdTransaction = await createTransaction(newTransaction);
+      setTransactions((prev) => [createdTransaction, ...prev]);
+      router.back();
     } catch (error) {
-      console.log(error);
+      console.error('Erro ao salvar transação:', error);
+      alert('Erro ao salvar transação');
     }
   }
 
@@ -44,13 +68,14 @@ export default function Modal() {
     router.dismissAll();
   }
 
-  const onChange = (event: DateTimePickerEvent, selectedDate: any) => {
-    const currentDate = selectedDate;
-    setShow(false);
-    setDate(currentDate);
+  const onChange = (event: DateTimePickerEvent, selectedDate: Date | undefined) => {
+    if (selectedDate) {
+      setShow(false);
+      setDate(selectedDate);
+    }
   };
 
-  const showMode = (currentMode: any) => {
+  const showMode = (currentMode: 'date' | 'time') => {
     setShow(true);
     setMode(currentMode);
   };
@@ -61,14 +86,19 @@ export default function Modal() {
 
   return (
     <SafeAreaView
-      className={`flex-1 ${transactionTypeLabel === 'Receita' ? 'bg-green-500' : 'bg-red-500'}`}>
+      className={`flex-1 ${transactionTypeLabel === 1 ? 'bg-green-500' : 'bg-red-500'}`}>
       <View className="h-60 flex-col justify-between p-5">
-        <Header
-          type="DARK"
-          pickerOptions={['Gasto', 'Receita']}
-          selectedItem={transactionTypeLabel}
-          setSelectedItem={setTransactionTypeLabel}
-        />
+        <View className="flex flex-row justify-between">
+          <Logo type="DARK" />
+          <Select
+            options={[
+              { name: 'Receita', id: 1 },
+              { name: 'Despesa', id: 2 },
+            ]}
+            selectedItem={transactionTypeLabel}
+            setSelectedItem={setTransactionTypeLabel}
+          />
+        </View>
         <CurrencyInput
           value={amount}
           keyboardType="numeric"
@@ -87,18 +117,24 @@ export default function Modal() {
         <View className="flex-1">
           <Text className="mb-3 text-white">Categoria</Text>
           <Select
-            options={['Academia', 'Escola', 'Mercado']}
+            options={categories}
             selectedItem={category}
             setSelectedItem={setCategory}
             background
           />
           <View className="mt-4">
-            <Text className="text-white">Data Selecionada</Text>
-            <Text className="text-gray-400">{date.toLocaleDateString('pt-BR')}</Text>
-          </View>
-          <View className="w-32 mt-7">
-            <TouchableOpacity onPress={showDatepicker} className='bg-zinc-800 rounded h-8 items-center justify-center'>
-              <Text className='text-white'>Selecionar data</Text>
+            <Text className="mb-2 text-white">Data</Text>
+            <TouchableOpacity
+              onPress={showDatepicker}
+              className="flex-row items-center justify-between rounded-lg bg-zinc-900 p-3">
+              <Text className="text-lg text-white">
+                {date.toLocaleDateString('pt-BR', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                })}
+              </Text>
+              <Text className="text-gray-400">Alterar</Text>
             </TouchableOpacity>
           </View>
 
@@ -106,9 +142,11 @@ export default function Modal() {
             <DateTimePicker
               testID="dateTimePicker"
               value={date}
-              mode="date"
+              mode={mode as any}
               is24Hour={true}
               onChange={onChange}
+              display="spinner"
+              locale="pt-BR"
             />
           )}
         </View>
